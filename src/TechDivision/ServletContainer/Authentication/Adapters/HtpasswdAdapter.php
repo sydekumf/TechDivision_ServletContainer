@@ -55,8 +55,11 @@ class HtpasswdAdapter extends AuthenticationAdapter
         $webAppPath = $this->servlet->getServletManager()->getWebappPath();
 
         // get content of htpasswd file.
-        $htpasswdData = file_get_contents($webAppPath . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . $this->filename);
-        $htpasswdData = explode('\n', $htpasswdData);
+        $htpasswdData = file($webAppPath . DIRECTORY_SEPARATOR . 'WEB-INF' . DIRECTORY_SEPARATOR . $this->filename);
+
+        if (!$htpasswdData) {
+            throw new \Exception('Htpasswd file not found.');
+        }
 
         // prepare htpasswd entries
         $this->htpasswd = array();
@@ -78,13 +81,12 @@ class HtpasswdAdapter extends AuthenticationAdapter
         // if user is valid
         if ($this->htpasswd[$user]) {
 
-            if ($this->checkPlainMd5($pwd, $this->htpasswd[$user])) {
-                return true;
-            } elseif ($this->checkApr1Md5($pwd, $this->htpasswd[$user])) {
-                return true;
-            } elseif ($this->checkCrypt($pwd, $this->htpasswd[$user])) {
-                return true;
-            } elseif ($this->checkSha1($pwd, $this->htpasswd[$user])) {
+            // try different password encryption methods
+            if ($this->checkPlainMd5($pwd, $this->htpasswd[$user]) ||
+                $this->checkApr1Md5($pwd, $this->htpasswd[$user]) ||
+                $this->checkCrypt($pwd, $this->htpasswd[$user]) ||
+                $this->checkSha1($pwd, $this->htpasswd[$user])
+            ) {
                 return true;
             }
         }
