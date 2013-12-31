@@ -131,13 +131,13 @@ class RequestHandler extends AbstractContextThread
             // try to locate a servlet which could service the current request
             $servlet = $application->locate($request);
 
-            // inject shutdown handler
+            // inject shutdown handler into servlet
             $servlet->injectShutdownHandler($this->newInstance('TechDivision\ServletContainer\Servlets\DefaultShutdownHandler', array(
                 $client,
                 $response
             )));
 
-            // inject authentication manager
+            // inject authentication manager into servlet
             $servlet->injectAuthenticationManager($this->newInstance('TechDivision\ServletContainer\AuthenticationManager', array()));
 
             // let the servlet process the request and store the result in the response
